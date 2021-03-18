@@ -1,2 +1,2 @@
-# EllipseDetection
-Ellipse detection in images using contour points
+# SphereCalib
+Sensor calibration with spheres
