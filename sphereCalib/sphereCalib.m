@@ -1,4 +1,4 @@
-function [rot, trans, S0Cam, S0Lid, rCam] = sphereCalib(imgDir, imgNames, scan3dDir, scan3dNames, fu, fv, u0, v0,  lidRansac, camRansac, showFigures)
+function [rot, trans, S0Cam, S0Lid, rCam] = sphereCalib(imgs, points, fu, fv, u0, v0,  lidRansac, edgeDetect, camRansac, showFigures)
 %
 % 3D-2D sensor calibration using spheres
 % 
@@ -7,9 +7,9 @@ function [rot, trans, S0Cam, S0Lid, rCam] = sphereCalib(imgDir, imgNames, scan3d
 % "Automatic LiDAR-Camera Calibration of Extrinsic Parameters Using a Spherical Target"
 %
 % INPUT
-% Source file infos
-% - imgDir, imgNames -- image path and file names
-% - scan3dDir, scan3dNames -- poit cloud path and file names
+% Source data
+% - imgs -- image frames
+% - points -- 3D point cloud
 % Camera instrinsics
 % - fu, fv -- focal length with pixel scale
 % - u0, v0 -- principal point
@@ -18,6 +18,9 @@ function [rot, trans, S0Cam, S0Lid, rCam] = sphereCalib(imgDir, imgNames, scan3d
 %                   if 1, adjacency based RANSAC 
 %                   if 2, distance based RANSAC
 %                   if 3, classical RANSAC with random 4 points 
+% - edgeDetect -- edge detector method
+%                   if 1, Canny
+%                   if 2, Sobel
 % - camRansac -- RANSAC algorithms to find ellipse inliers in the images 
 %                   if 1, approximation with a circle
 %                   if 2, detection with sphere projection
@@ -32,20 +35,8 @@ function [rot, trans, S0Cam, S0Lid, rCam] = sphereCalib(imgDir, imgNames, scan3d
 % - S0Lid -- Estimated sphere centers from +D data, N by 3 matrix
 % - rCam -- Estimated sphere radius 
 %
-numImgs = length(imgNames);
-numScan = length(scan3dNames);
-
-if numImgs < 3
-    error('Not enough input image file names (second argument).');
-end
-
-if numScan < 3 
-    error('Not enough input 3D scan file names (fourth argument).');
-end
-
-if numImgs ~= numScan
-    error('Number of input images and 3D scans are different (second and fourth argument).');
-end
+numScan = length(points);
+numImgs = length(imgs);
 
 S0Lid = zeros(numScan,3);
 rLid = zeros(numScan, 1);
@@ -55,12 +46,12 @@ iterationsRLid = 100000;
 iterationsALid = 10000;
 iterationsDLid = 10000;
 
-ransacThresholdLid = 0.05;
+ransacThresholdLid = 0.15;
 adjacencyThresholdLid = 30;
 distanceThresholdLid = 0.15;
 
 iterationsRCam = 10000;
-ransacThresholdCam = 5/fu; % n/fu means n pixel max error
+ransacThresholdCam = 4/fu; % n/fu means n pixel max error
 
 rMinLid = 0.05;
 rMaxLid = 2.5;
@@ -70,20 +61,17 @@ rMaxCam = u0/fu;
 
 % detect sphere centers from 3D data
 for i= 1:numScan
-    % read file
-    scan3dFile = strcat(scan3dDir,scan3dNames(i));
-    points = importdata(scan3dFile);
     % detect sphere inliers and parameters
     switch lidRansac
         case 1
-            [inliers, S0Lid(i,1:3), rLid(i)] = detectSphereWithAdjacency(points, iterationsALid, adjacencyThresholdLid, ransacThresholdLid, rMinLid, rMaxLid);
+            [inliers, S0Lid(i,1:3), rLid(i)] = detectSphereWithAdjacency(points{i}, iterationsALid, adjacencyThresholdLid, ransacThresholdLid, rMinLid, rMaxLid);
         case 2 
-            [inliers, S0Lid(i,:), rLid(i)] = detectSphereWithDistance(points, iterationsDLid, distanceThresholdLid, ransacThresholdLid, rMinLid, rMaxLid);
+            [inliers, S0Lid(i,:), rLid(i)] = detectSphereWithDistance(points{i}, iterationsDLid, distanceThresholdLid, ransacThresholdLid, rMinLid, rMaxLid);
         case 3
-            [inliers, S0Lid(i,:), rLid(i)] = detectSphereRand4p(points, iterationsRLid, ransacThresholdLid, rMinLid, rMaxLid);
+            [inliers, S0Lid(i,:), rLid(i)] = detectSphereRand4p(points{i}, iterationsRLid, ransacThresholdLid, rMinLid, rMaxLid);
     end
     if showFigures
-        plotSphereFit(points, inliers);
+        plotSphereFit(points{i}, inliers);
     end
 end
 
@@ -92,11 +80,15 @@ rCam = mean(rLid);
 
 % detect sphere centers from 2D data
 for i= 1:numImgs
-    % read file
-    imgFile = strcat(imgDir,imgNames(i));
-    img = rgb2gray(imread(char(imgFile)));
+    % convert image
+    img = rgb2gray(imgs{i});
     % get edge points
-    edgeImg = edge(img,'canny');
+    switch edgeDetect
+        case 1
+            edgeImg = edge(img,'canny');
+        case 2
+            edgeImg = edge(img,'sobel');
+    end
     points_pix = getIdxList(edgeImg);
     points_pix = [points_pix(:, 2) (points_pix(:, 1))];
     % normalize coordinates
