@@ -1,11 +1,15 @@
-function [S0, alpha] = sphereFromEllipseOpt(ellipseImpl, r, S0, alpha)
+function [S0, alpha] = implEllipse2implSphereOpt(ellipseImpl, r, S0, alpha)
 %
-% Sphere center estimation with Levenberg-Marquard minimization
+% Optimal sphere center estimation with Levenberg-Marquard minimization
+% Conversion from implicit ellipse     
+%              e(u, v)   : A*u^2 + B*u*v + C*v^2 + D*u + E*v + F = 0 
+%            to implicit sphere             
+%              s(x, y, z): (x - x0)^2 + (y - y0)^2 + (z - z0)^2 = r^2
 %
 % ellipseImpl: [A,...,F] implicit ellipse parameters
 % r: sphere radius
-% S0: sphere center (input initial, output optimal)
-% alpha : scale (input initial, output optimal)
+% S0: sphere center (input: initial, output: optimal)
+% alpha : scale (input: initial, output: optimal)
 %
 const = [0 1 1  0  0  0 -r^2;
          0 0 0 -2  0  0  0;

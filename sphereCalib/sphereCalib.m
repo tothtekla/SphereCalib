@@ -1,4 +1,4 @@
-function [rot, trans, S0Cam, S0Lid, rCam] = sphereCalib(imgs, points, fu, fv, u0, v0,  lidRansac, edgeDetect, camRansac, showFigures)
+function [rot, trans, S0Cam, S0Lid, rCam] = sphereCalib(imgs, points, fu, fv, u0, v0, lidRansac, edgeDetect, camRansac, showFigures)
 %
 % 3D-2D sensor calibration using spheres
 % 
@@ -59,7 +59,9 @@ rMaxLid = 2.5;
 rMinCam = 10/fu;
 rMaxCam = u0/fu;
 
+%rCam = 2.0;
 % detect sphere centers from 3D data
+%%{
 for i= 1:numScan
     % detect sphere inliers and parameters
     switch lidRansac
@@ -77,6 +79,7 @@ end
 
 % save average estimated radius 
 rCam = mean(rLid);
+%}
 
 % detect sphere centers from 2D data
 for i= 1:numImgs
@@ -97,10 +100,10 @@ for i= 1:numImgs
     switch camRansac
         case 1
             [inliers, ellipseImpl] = detectEllipseWithCircle(points_m, iterationsRCam, ransacThresholdCam, rMinCam, rMaxCam);
-            [S0CamIni, alphaIni] = sphereFromEllipseIni(ellipseImpl(1), ellipseImpl(2),...
+            [S0CamIni, alphaIni] = implEllipse2implSphereIni(ellipseImpl(1), ellipseImpl(2),...
                                                 ellipseImpl(3), ellipseImpl(4),...
                                                 ellipseImpl(5), ellipseImpl(6), rCam);
-            [S0Cam(i,:), ~] = sphereFromEllipseOpt(ellipseImpl, rCam, S0CamIni, alphaIni);
+            [S0Cam(i,:), ~] = implEllipse2implSphereOpt(ellipseImpl, rCam, S0CamIni, alphaIni);
         case 2
             [inliers, S0Cam(i,:)] = detectSphereRand3p(points_m, rCam, iterationsRCam, ransacThresholdCam, rMinCam, rMaxCam);
     end

@@ -26,5 +26,7 @@ figure;
 hold on;
 axis equal;
 scatter3(pointsLid_m(:, 1), pointsLid_m(:, 2), pointsLid_m(:, 3), [], colorsLid, 'filled');
+plotCamera(rot, trans, fu, fv, u0, v0, 1);
+plotLidar(eye(3), zeros(1,3), 1);
 hold off;
 end

@@ -1,8 +1,12 @@
-function [S0, alpha] = sphereFromEllipseIni(A, B, C, D, E, F, r)
+function [S0, alpha] = implEllipse2implSphereIni(A, B, C, D, E, F, r)
 %
 % Initial sphere center estimation
+% Conversion from implicit ellipse     
+%              e(u, v)   : A*u^2 + B*u*v + C*v^2 + D*u + E*v + F = 0 
+%            to implicit sphere             
+%              s(x, y, z): (x - x0)^2 + (y - y0)^2 + (z - z0)^2 = r^2
 %
-% A,..,F: implicitellipse parameters
+% A,..,F: implicit ellipse parameters
 % r: sphere radius
 % S0: sphere center 
 % alpha: scale 
