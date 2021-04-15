@@ -59,9 +59,7 @@ rMaxLid = 2.5;
 rMinCam = 10/fu;
 rMaxCam = u0/fu;
 
-%rCam = 2.0;
 % detect sphere centers from 3D data
-%%{
 for i= 1:numScan
     % detect sphere inliers and parameters
     switch lidRansac
@@ -79,7 +77,6 @@ end
 
 % save average estimated radius 
 rCam = mean(rLid);
-%}
 
 % detect sphere centers from 2D data
 for i= 1:numImgs

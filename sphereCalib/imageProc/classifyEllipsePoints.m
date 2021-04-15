@@ -9,13 +9,14 @@ function inlierIdxs = classifyEllipsePoints(points, ellipseParam, ransacThreshol
 %   
 inlierIdxs = zeros(length(points), 1);
 numPts = 0;
+d = zeros(numPts,1);
 
 for i = 1 : length(points)
     % distance of the i-th point from sphere center with numerical approximation
-    d = pointEllipseDistance(points(i,1), points(i,2), ellipseParam(1), ...
+    d(i) = pointEllipseDistance(points(i,1), points(i,2), ellipseParam(1), ...
         ellipseParam(2), ellipseParam(3), ellipseParam(4), ellipseParam(5));
     % if the point fits, save the index
-    if(d < ransacThreshold)
+    if(d(i) < ransacThreshold)
         numPts = numPts + 1;
         inlierIdxs(numPts) = i;
     end 
