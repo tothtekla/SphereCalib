@@ -8,18 +8,12 @@ function inlierIdxs = classifySpherePoints(points, S0, r, ransacThreshold)
 % ransacThreshold: Euclidean distance error threshold of RANSAC
 % inlierIdxs: final inlier indices
 %
-inlierIdxs = zeros(length(points), 1);
-numPts = 0;
-for i = 1 : length(points)
-    % distance of the i-th point from sphere center
-    rTmp = norm(S0-points(i, :));
-    d = abs(r - rTmp);
-    % save the index if the point fits
-    if(d < ransacThreshold)
-        numPts = numPts + 1;
-        inlierIdxs(numPts) = i;
-    end
-end
-% save inlier indices
-inlierIdxs = inlierIdxs(1:numPts);
+
+% point distance from the sphere center
+radii = S0-points;
+radii = sqrt(sum(radii.*radii,2));
+% radius error
+distances = abs(r - radii);
+% if the point fits, save the index
+inlierIdxs = find(distances < ransacThreshold);
 end

@@ -6,14 +6,17 @@ load('input1.mat', 'imgDir', 'imgNames', 'scan3dDir', 'scan3dNames',...
     'fu', 'fv', 'u0', 'v0', 'rGT', 'S0CamGT', 'S0LidGT', 'rotGT', 'transGT');
 
 lidRansac = 1;
+rMaxLid = 3;
 edgeDetect = 2;
+edgeThreshold = [];
 camRansac = 1;
 showFigures = true;
 
 [imgs, points] = readFiles(imgDir, imgNames, scan3dDir, scan3dNames);
 
 tic;
-[rotEst, ~, S0CamEst, S0LidEst, rEst] = sphereCalib(imgs, points, fu, fv, u0, v0, lidRansac, edgeDetect, camRansac, showFigures);
+[rotEst, ~, S0CamEst, S0LidEst, rEst, ~] = sphereCalib(imgs, points,...
+    fu, fv, u0, v0, lidRansac, rMaxLid, edgeDetect, edgeThreshold, camRansac, showFigures);
 toc;
 
 [S0LidMeanErr, S0LidStd] = estimateSphereCenterError(S0LidEst, S0LidGT);
@@ -26,11 +29,11 @@ transEst = mean(S0LidEst)-mean((rotEst*S0CamEst')'); %#ok<UDIM>
 [transErr, rotErr] = estimateTransformError(transEst, rotEst, transGT, rotGT);
 
 for i = 1:length(imgNames)
-    plotBackProjection(imgs{i}, points{i}, rotGT, transGT, fu, fv, u0, v0);
-    plotColoredProjection(imgs{i}, points{i}, rotGT, transGT, fu, fv, u0, v0);
+    plotBackProjection(imgs{i}, points{i}, rotGT, transGT, fu, fv, u0, v0, '');
+    plotColoredProjection(imgs{i}, points{i}, rotGT, transGT, fu, fv, u0, v0, '');
 end
 for i = 1:length(imgNames)
-    plotBackProjection(imgs{i}, points{i}, rotEst, transEst, fu, fv, u0, v0);
-    plotColoredProjection(imgs{i}, points{i}, rotEst, transEst, fu, fv, u0, v0);
+    plotBackProjection(imgs{i}, points{i}, rotEst, transEst, fu, fv, u0, v0, '');
+    plotColoredProjection(imgs{i}, points{i}, rotEst, transEst, fu, fv, u0, v0, '');
 end
 end

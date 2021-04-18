@@ -6,14 +6,14 @@ function plotLidar(rot, trans, scale)
 % - rot -- rotation matrix, 3 by 3
 % - trans -- translation vector 
 % Other
-% scaling of the plot
+% - scale -- scaling of the plot
 %
 u = 0:0.05:1;
 u = 2 * pi * u;
 N = length(u);
 
-circle1 = [0.5*cos(u); -0.25*ones(1, N); 0.5*sin(u)];
-circle2 = [0.5*cos(u); 0.25*ones(1, N); 0.5*sin(u)];
+circle1 = [0.5*cos(u);  0.5*sin(u); -0.25*ones(1, N)];
+circle2 = [0.5*cos(u);  0.5*sin(u);  0.25*ones(1, N)];
 points = eye(3);
       
 circle1 =(rot * scale * circle1)' + trans;
