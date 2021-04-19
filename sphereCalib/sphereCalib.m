@@ -69,11 +69,11 @@ rMinCam = 10/fu;
 rMaxCam = u0/fu;
 
 % detect sphere centers from 3D data
-for i= 1:numScan
+for i = 1:numScan
     % detect sphere inliers and parameters
     switch lidRansac
         case 1
-            [sphInliers{i}, S0Lid(i,1:3), rLid(i)] = detectSphereWithAdjacency(points{i}, iterationsALid, adjacencyThresholdLid, ransacThresholdLid, rMinLid, rMaxLid);
+            [sphInliers{i}, S0Lid(i,:), rLid(i)] = detectSphereWithAdjacency(points{i}, iterationsALid, adjacencyThresholdLid, ransacThresholdLid, rMinLid, rMaxLid);
         case 2 
             [sphInliers{i}, S0Lid(i,:), rLid(i)] = detectSphereWithDistance(points{i}, iterationsDLid, distanceThresholdLid, ransacThresholdLid, rMinLid, rMaxLid);
         case 3
@@ -88,7 +88,7 @@ end
 rCam = mean(rLid);
 
 % detect sphere centers from 2D data
-for i= 1:numImgs
+for i = 1:numImgs
     % convert image
     img = rgb2gray(imgs{i});
     % get edge points
