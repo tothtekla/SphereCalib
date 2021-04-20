@@ -12,7 +12,8 @@ load('input3C2.mat', 'imgDir', 'imgNames', 'scan3dDir', 'scan3dNames',...
     'fu', 'fv', 'u0', 'v0');
 %}
 
-lidPlanes = 4;    
+lidPlanes = 4;  
+closeThreshold = 0; 
 lidRansac = 1;
 edgeDetect = 1;
 edgeThreshold = 0.3;
@@ -22,7 +23,7 @@ showFigures = true;
 [imgs, points] = readFiles(imgDir, imgNames, scan3dDir, scan3dNames);
 pointsAll = points;
 tic;
-points = deletePlanes(points, lidPlanes, showFigures);
+points = deletePlanes(points, lidPlanes, closeThreshold, showFigures);
 [rotEst, transEst, S0CamEst, S0LidEst, rEst, sphInliers] = sphereCalib(imgs, points, fu, fv, u0, v0,...
     lidRansac, [], edgeDetect, edgeThreshold, camRansac, showFigures);
 toc;

@@ -1,4 +1,4 @@
-function points =  deletePlanes(points, numPlanes, showFigures)
+function points =  deletePlanes(points, numPlanes, closeThreshold, showFigures)
 %
 % Delete planes with Sequential RANSAC 
 %
@@ -12,7 +12,6 @@ iterations = 10000;
 ransacThreshold = 0.04;
 planes = cell(numScans, numPlanes);
 closePoints =  cell(numScans, 1);
-closeThreshold = 1.2;
 
 for i = 1:numScans
     % detele very close points
