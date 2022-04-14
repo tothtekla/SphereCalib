@@ -30,14 +30,34 @@ end
 imgs = cell(numImgs, 1);
 points = cell(numScan, 1);
 
+%%{
 for i= 1:numScan
     scan3dFile = strcat(scan3dDir,scan3dNames(i));
-    points{i} = importdata(scan3dFile);
-end
-
-for i= 1:numImgs
+   
     imgFile = strcat(imgDir,imgNames(i));
-    imgs{i} = imread(char(imgFile));
+    if ~isfile(scan3dFile)
+        warning(strcat('Warning: file does not exist: ', num2str(i)));
+        %i=i-1;
+        %numScan=numScan-1;
+    else if ~isfile(imgFile)
+            warning(strcat('Warning: file does not exist: ', num2str(i)));
+            %i=i-1;
+            %numScan=numScan-1;
+        else
+            points{i} = importdata(char(scan3dFile));
+            points{i} = points{i}(:, 1:3);
+            imgs{i} = imread(char(imgFile));
+        end
+    end
 end
+%}
+
+points=points(~cellfun(@isempty,points));
+imgs=imgs(~cellfun(@isempty,imgs));
+
+%{
+for i= 1:numImgs
+end
+%}
 
 end

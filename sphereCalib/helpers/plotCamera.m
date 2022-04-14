@@ -1,4 +1,4 @@
-function plotCamera( rot, trans, fu, fv, u0, v0, scale)
+function plotCamera( rot, trans, fu, fv, u0, v0, scale,lwRGB, lwEdge, color)
 %
 % Plot camera frustum and axes
 %
@@ -27,11 +27,11 @@ P_end = [points(2, :); points(3, :); points(4, :); points(5, :);...
   
 %Plot camera frustrum
 for i = 1:8
-    plot3([P_start(i,1) P_end(i,1)], [P_start(i,2) P_end(i,2)], [P_start(i,3) P_end(i,3)], 'k');     
+    plot3([P_start(i,1) P_end(i,1)], [P_start(i,2) P_end(i,2)], [P_start(i,3) P_end(i,3)], 'k', 'linewidth',lwEdge, 'Color', color);     
 end
 
 %Plot camea axes
-plot3([trans(1) points(6,1)], [trans(2) points(6,2)], [trans(3) points(6,3)], 'r');
-plot3([trans(1) points(7,1)], [trans(2) points(7,2)], [trans(3) points(7,3)], 'g');
-plot3([trans(1) points(8,1)], [trans(2) points(8,2)], [trans(3) points(8,3)], 'b');
+plot3([trans(1) points(6,1)], [trans(2) points(6,2)], [trans(3) points(6,3)], 'r', 'linewidth',lwRGB);
+plot3([trans(1) points(7,1)], [trans(2) points(7,2)], [trans(3) points(7,3)], 'Color', [0, 204, 0]/255, 'linewidth',lwRGB);
+plot3([trans(1) points(8,1)], [trans(2) points(8,2)], [trans(3) points(8,3)], 'b', 'linewidth',lwRGB);
 end
