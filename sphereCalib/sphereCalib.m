@@ -1,4 +1,5 @@
-function [rot, trans, S0Cam, S0Lid, rCam, sphInliers] = sphereCalib(imgs, points, fu, fv, u0, v0, lidRansac, rMaxLid, edgeDetect, edgeThreshold, camRansac, showFigures)
+function [rot, trans, S0Cam, S0Lid, rCam, sphInliers] = sphereCalib(imgs, points, fu, fv, u0, v0,...
+    lidRansac, rMaxLid, edgeDetect, edgeThreshold, camRansac, showFigures)
 %
 % 3D-2D sensor calibration using spheres
 % 
@@ -44,10 +45,14 @@ function [rot, trans, S0Cam, S0Lid, rCam, sphInliers] = sphereCalib(imgs, points
 numScan = length(points);
 numImgs = length(imgs);
 
+%numScan = 30;
+%numImgs = 30;
+
 sphInliers = cell(numScan, 1);
 S0Lid = zeros(numScan,3);
 rLid = zeros(numScan, 1);
 S0Cam = zeros(numImgs,3);
+ellipseParams = zeros(numImgs, 5);
 
 iterationsRLid = 100000;
 iterationsALid = 10000;
@@ -60,15 +65,16 @@ distanceThresholdLid = 0.15;
 iterationsRCam = 10000;
 ransacThresholdCam = 4/fu; % n/fu means n pixel max error
 
-rMinLid = 0.10;
+rMinLid = 0.1;
 if isempty(rMaxLid)
-    rMaxLid = 1.0;
+    rMaxLid = 0.5;
 end
 
 rMinCam = 10/fu;
-rMaxCam = u0/fu;
+rMaxCam = u0/(2*fu);
 
 % detect sphere centers from 3D data
+%%{
 for i = 1:numScan
     % detect sphere inliers and parameters
     switch lidRansac
@@ -83,26 +89,16 @@ for i = 1:numScan
         plotSphereFit(points{i}, sphInliers{i});
     end
 end
-
+%}
 % save average estimated radius 
-rCam = mean(rLid);
+rCam = 0.25;%mean(rLid(~isnan(rLid)));
 
 % detect sphere centers from 2D data
 for i = 1:numImgs
     % convert image
     img = rgb2gray(imgs{i});
-    % get edge points
-    switch edgeDetect
-        case 1
-            edgeImg = edge(img,'canny', edgeThreshold);
-        case 2
-            edgeImg = edge(img,'sobel', edgeThreshold);
-    end
-    points_pix = getIdxList(edgeImg);
-    % swap x and y to have x as horizontal and y as verical axis
-    points_pix = [points_pix(:, 2) (points_pix(:, 1))];
-    % normalize coordinates
-    points_m = pixel2meter(points_pix, fu, fv, u0, v0);
+    % edge image
+    points_m = gray2meter(edgeDetect, img, edgeThreshold, fu, fv, u0, v0);
     % detect sphere projection inliers and sphere parameters
     switch camRansac
         case 1
@@ -113,11 +109,35 @@ for i = 1:numImgs
             [S0Cam(i,:), ~] = implEllipse2implSphereOpt(ellipseImpl, rCam, S0CamIni, alphaIni);
         case 2
             [inliers, S0Cam(i,:)] = detectSphereRand3p(points_m, rCam, iterationsRCam, ransacThresholdCam, rMinCam, rMaxCam);
+        case 3
+            [inliers, S0Cam(i,:)] = detectSphereRand5p(points_m, rCam, iterationsRCam, ransacThresholdCam, rMinCam, rMaxCam);
     end
+    % edge image
+    %points_m = gray2meter(edgeDetect, img, edgeThreshold/6, fu, fv, u0, v0);
+    % refine ellipse with weak edges
+    %[inliers, S0Cam(i,:), ellipseParams(i, :)] = refineEllipsePoints(inliers, points_m, rCam, ransacThresholdCam);
+    % show edges vs inliers
     if showFigures
         plotEllipseFit(points_m, inliers, fu, fv, u0, v0);
     end
 end
+
+S0Lid  = S0Lid (~isoutlier(rLid),:);
+S0Cam  = S0Cam (~isoutlier(rLid),:);
+
+%{
+S0Lid  = S0Lid (~isnan(vecnorm(S0Lid')),:);
+S0Cam  = S0Cam (~isnan(vecnorm(S0Lid')), :);
+
+S0Lid  = S0Lid (~isnan(vecnorm(S0Cam')),:);
+S0Cam  = S0Cam (~isnan(vecnorm(S0Cam')),:);
+
+S0Lid  = S0Lid (~isoutlier(vecnorm(S0Lid')),:);
+S0Cam  = S0Cam (~isoutlier(vecnorm(S0Lid')), :);
+
+S0Lid  = S0Lid (~isoutlier(vecnorm(S0Cam')),:);
+S0Cam  = S0Cam (~isoutlier(vecnorm(S0Cam')),:);
+%}
 
 % pointset registration between sphere centers
 [rot, trans] = pointReg(S0Cam,S0Lid);
