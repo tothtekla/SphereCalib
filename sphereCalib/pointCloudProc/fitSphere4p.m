@@ -8,7 +8,7 @@ function [S0, r] = fitSphere4p(points)
 %
 % The center point considered as intersection of planes
 % n and midP are the normal vectors and a points lying on a plane
-% S0 = n^(-1) * [<n1,midP1> ; <n2,midP2> ; <n3,midP3>; ; <n4,midP4>]
+% S0 = ni^(-1) * [<n1,midP1> ; <n2,midP2> ; <n3,midP3> ; <n4,midP4>]
 %
 midP = zeros(4, 3);
 n = zeros(4, 3);

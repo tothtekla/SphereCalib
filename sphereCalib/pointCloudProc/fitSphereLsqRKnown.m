@@ -1,4 +1,4 @@
-function [S0, r] = fitSphereLsq(points)
+function [S0, r] = fitSphereLsqRKnown(points, r_ini)
 %
 % Sphere fitting with an iterative least-squares method 
 % based on David Eberly, "Least Squares Fitting of Data"
@@ -12,6 +12,7 @@ meanPts = mean(points);
 numPts = length(points);
 points = points - meanPts;
 
+%{
 numS0Ini = floor(numPts / 4);
 S0Ini = zeros(numS0Ini, 3);
 idxs = randperm(length(points));
@@ -40,5 +41,16 @@ for j = 1 : iterations
         break;
     end
 end
+%}
+for i = 1 : numPts
+    dir_i = S0 - points(i,1:3);
+    r_i = sqrt(dot(dir_i,dir_i));
+    r_avg = r_avg + r;
+    dir_avg = dir_avg + ( (S0 - points(i,:)) / r);
+end
+
+S0 = (r_avg * dir_avg) / numPts^2; 
+r = r_avg / numPts;
+
 S0 = S0 + meanPts;
 end

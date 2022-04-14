@@ -1,7 +1,7 @@
-function [inliers, S0] = detectSphereRand3p(points, r, iterations, ransacThreshold, aMin, aMax)
+function [inliers, ellipseParam, S0] = detectSphereRand5p(points, r, iterations, ransacThreshold, aMin, aMax)
 %
 % Detect sphere projection (ellipse) contour points in 2D pointset using RANSAC
-% Initial inlier set: 3 random points
+% Initial inlier set: 5 random points
 % After then fitting sphere with the inliers
 %
 % points : 2D pointset, N by 2 matrix
@@ -17,9 +17,10 @@ inlierIdxs = [];
 
 for j = 1 : iterations
     % generate 3 random point 
-    inlierIdxsTmp = randperm(numPts, 3);
+    inlierIdxsTmp = randperm(numPts, 5);
     % approximate sphere projection parameters with 3 points  
-    ellipseParam = fitEllipse3p(points(inlierIdxsTmp,:));
+    ellipseImpl = fitEllipse5p(points(inlierIdxsTmp,:));
+    ellipseParam = implEllipseVec2paramEllipseVec(ellipseImpl); 
     % optional speed-up: longer ellipse semi-axis smaller than aMin or greater than aMax is assumed unrealistic
     if ellipseParam(1) > aMin && ellipseParam(1) < aMax
         % label points
@@ -32,7 +33,8 @@ for j = 1 : iterations
 end
 % re-fit a sphere
 inliers = points(inlierIdxs, :);
-S0 = fitSphere3p(inliers, r);
-%ellipseParam = fitEllipse3p(inliers); 
-%S0 = paramEllipseVec2implSphereVec(ellipseParam, r);
+ellipseImpl = fitEllipse5p(inliers);
+ellipseParam = implEllipseVec2paramEllipseVec(ellipseImpl); 
+S0 = paramEllipseVec2implSphereVec(ellipseParam, r);
+
 end

@@ -1,3 +1,4 @@
+
 function [rot, trans] = pointReg(pts1, pts2)
 %
 % Pointset registration 

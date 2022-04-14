@@ -1,4 +1,4 @@
-function points =  deletePlanes(points, numPlanes, closeThreshold, showFigures)
+function points =  deletePlanes(points, numPlanes, closeThreshold, farThreshold, showFigures)
 %
 % Delete planes with Sequential RANSAC 
 %
@@ -16,7 +16,7 @@ closePoints =  cell(numScans, 1);
 for i = 1:numScans
     % detele very close points
     distances = sqrt(sum(points{i}.*points{i}, 2));
-    toDelete = find(distances < closeThreshold);
+    toDelete = find(distances < closeThreshold | distances > farThreshold);
     closePoints{i} = points{i}(toDelete, :);
     points{i}(toDelete, :) = [];
     % dete planes
@@ -28,6 +28,8 @@ for i = 1:numScans
             inlierIdxsTmp = randperm(numPts, 3);
             % find sphere parameters
             [p, n] = fitPlane3p(points{i}(inlierIdxsTmp,:));
+            %disp(p);
+            %disp(n);
             % label points
             inlierIdxsTmp = classifyPlanePoints(points{i}, p, n, ransacThreshold);       
             % save the best model
@@ -53,6 +55,7 @@ if showFigures
             scatter3(planes{i,j}(:,1), planes{i,j}(:,2), planes{i,j}(:,3));
         end
         scatter3(points{i}(:,1), points{i}(:,2), points{i}(:,3));
+        legend('filtered', 'plane', 'pointset');
     end
 end
 
