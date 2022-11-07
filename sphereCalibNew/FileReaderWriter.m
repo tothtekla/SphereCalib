@@ -31,13 +31,13 @@ classdef FileReaderWriter
             end
         end
         
-        %TODO: OBJ1 OBJ2 FOLRERS EXIST?
+        %TODO: OBJ1 OBJ2 FOLDERS EXIST?
         function out =  FileReaderWriter(obj1, obj2, isReader,...
                                          imgNameStart, imgNameEnd,...
                                          cloudNameStart, cloudNameEnd)
             arguments
-                obj1 = 'C:\Users\totht\Downloads\OneDrive_1_1-25-2022\parkolo_gomb_cal_4FPS_pictures'; %FileReaderWriter or imgDir 
-                obj2 char = 'C:\Users\totht\Downloads\OneDrive_1_1-25-2022\parkolo_gomb_cal_4FPS_XYZ';               %cloudDir
+                obj1 = 'C:\Users\totht\ELTE\Data\20220125\parkolo_gomb_cal_4FPS_pictures'; %FileReaderWriter or imgDir 
+                obj2 char = 'C:\Users\totht\ELTE\Data\20220125\parkolo_gomb_cal_4FPS_XYZ';               %cloudDir
                 isReader (1,1) logical = 1
                 imgNameStart char = 'Dev0_Image_w960_h600_fn'
                 imgNameEnd char = '.jpg'
@@ -73,6 +73,8 @@ classdef FileReaderWriter
                 obj FileReaderWriter
                 idxs (:, 1) double = obj.idxs
             end
+            idxs2 = ismember(idxs, obj.idxs);
+            idxs = idxs(idxs2);
             imgs = readImgs(obj, idxs);
             clouds = readClouds(obj, idxs);
         end
@@ -88,7 +90,10 @@ classdef FileReaderWriter
             for i = 1:N
                 waitText = strcat({'Reading images: '}, num2str(i), '/', num2str(N));
                 waitbar(i/N, f, waitText{1});
-                imgFile = strcat(obj.imgDir,'\',obj.imgNames(idxs(i)));
+                if i == 24
+                disp(i);
+                end
+                imgFile = strcat(obj.imgDir,'\', obj.imgNameStart, num2str(idxs(i)), obj.imgNameEnd);
                 if ~isfile(imgFile)
                     errorMessage = strcat({'File does not exist: '}, num2str(idxs(i)));
                     error(errorMessage{1});
@@ -111,12 +116,12 @@ classdef FileReaderWriter
             for i = 1 : N
                 waitText = strcat({'Reading point clouds: '}, num2str(i), '/', num2str(N));
                 waitbar(i/N, f, waitText{1});
-                cloudFile = strcat(obj.cloudDir,'\',obj.cloudNames(idxs(i)));
+                cloudFile = strcat(obj.cloudDir,'\', obj.cloudNameStart, num2str(idxs(i)), obj.cloudNameEnd);
                 if ~isfile(cloudFile)
                     errorMessage = strcat({'File does not exist: '}, num2str(idxs(i)));
                     error(errorMessage{1});
                 end
-                clouds{i} = importdata(char(cloudFile));
+                clouds{i} = readmatrix(char(cloudFile), 'FileType', 'text'); %importdata(char(cloudFile));
                 clouds{i} = clouds{i}(:, 1:3); 
             end
             waitbar(1,f,'Point cloud reading finished!');

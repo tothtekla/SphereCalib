@@ -72,8 +72,79 @@ classdef ParametricEllipse
                 r  (1,1) double
             end
             s0 = ParametricEllipse.parametricEllipse2SphereCenter(pE.a, pE.b, pE.e0(1), pE.e0(2), pE.theta, r);
-            s = Sphere([s0 r]);
+            s = SphereConverter([s0 r]);
+       end
+
+       function pE = convertToPixel(pE, u0, v0, fu, fv)
+            arguments
+                pE (1,1) ParametricEllipse
+                u0 (1,1) double
+                v0 (1,1) double
+                fu (1,1) double
+                fv (1,1) double
+            end
+            [pE.a, pE.b] =  axesInMeter2axesInPixel(pE, fu, fv);
+            pE.e0 = (pE.e0 .* [fu fv]) + [u0 v0];
+            % TODO if fu ~= fv, theta is changing
+       end
+
+       function pts = generateEllipsePoints(pE, numInliers)
+            %
+            % Generate points around the ellipse contour at the origin with natural  
+            % parametriztion, then apply rotation and translation
+            %
+            % Chebfun download: https://www.chebfun.org/download/
+            %
+            arguments
+                pE (1,1) ParametricEllipse
+                numInliers (1,1) double = 25
+            end           
+            % Set the interval of parameter t 
+            t = chebfun('t',[0 2*pi]);
+            % Construate the ellipse with a,b using complex numbers 
+            ellipse = chebfun(pE.a*cos(t)+1i*pE.b*sin(t));
+            % Find the natural parameterization
+            natural = ellipse(inv(cumsum(abs(diff(ellipse)))));
+            % Generate inliers in the origin-centred ellipse 
+            inliersAtO_cmplx = natural(linspace(natural.domain(1),natural.domain(2),numInliers+1));
+            % Convert complex numbers into homogeneus coord.-s. 
+            % - Left out the last one (Same as the first)
+            inliersAtO_hom = [real(inliersAtO_cmplx(1:end-1)) ; imag(inliersAtO_cmplx(1:end-1)) ; ones(1,numInliers)];
+            % Transform the ellipse
+            % Create rotation + translation matrix
+            T = [cos(pE.theta), -sin(pE.theta),     pE.e0(1);...
+                 sin(pE.theta), cos(pE.theta), pE.e0(2);...
+                 0,              0,              1];
+            inliers_hom = (T * inliersAtO_hom)';
+            % Convert from homogeneus to cartesian coord. 
+            pts = hom2cart(inliers_hom);
+       end
+
+        function [a_dist_pix, b_dist_pix] = axesInMeter2axesInPixel(pE, fu, fv)
+            %
+            % Convert a distance in the image from meters to pixels using camera instrinsic parameters
+            % dist_pix: end point of the line segment
+            % angle: rotation of the line segment
+            arguments
+                pE (1,1) ParametricEllipse
+                fu (1,1) double
+                fv (1,1) double
+            end
+            a_m = [pE.a zeros(length(pE.a), 1)];
+            b_m = [zeros(length(pE.b), 1) pE.b];
+
+            R = [ cos(pE.theta), -sin(pE.theta);
+              sin(pE.theta), cos(pE.theta)];
+            a_m(1:2) = (R * a_m(1:2)')';
+            b_m(1:2) = (R * b_m(1:2)')';
+           
+            a_pix = a_m .* [fu fv];
+            b_pix = b_m .* [fu fv];
+
+            a_dist_pix = vecnorm(a_pix,2,2);
+            b_dist_pix = vecnorm(b_pix,2,2);
         end
+
     end
     
     methods (Static)

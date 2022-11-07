@@ -1,5 +1,5 @@
-classdef Sphere
-    % Sphere
+classdef SphereConverter
+    % SphereConverter
     
     properties
         parameters (1,4) double
@@ -25,14 +25,14 @@ classdef Sphere
             obj.parameters(4) = val;
         end
         
-        function out = Sphere(obj)
+        function out = SphereConverter(obj)
             % Constructor
             if nargin == 0
                 return; 
             end
-            if isa(obj,'Sphere')
+            if isa(obj,'SphereConverter')
                 out.parameters = obj.parameters;
-            elseif isvector(obj) && all(size(obj) == [1 4])
+            elseif isvector(obj) && all(size(obj) == [1 4]) && all(obj(:, 4) > 0)
                 out.parameters = obj;
             end
         end
@@ -42,9 +42,9 @@ classdef Sphere
             %  Conversion from sphere object to implicit ellipse object 
             %
             arguments
-                s (1,1) Sphere
+                s (1,1) SphereConverter
             end
-            [A, B, C, D, E, F] = Sphere.sphere2implicitEllipse(s.s0(1), s.s0(2), s.s0(3), s.r);
+            [A, B, C, D, E, F] = SphereConverter.sphere2implicitEllipse(s.s0(1), s.s0(2), s.s0(3), s.r);
             iE = ImplicitEllipse([A, B, C, D, E, F]);
         end
         
@@ -53,10 +53,28 @@ classdef Sphere
             %  Conversion from sphere object to parametric ellipse object 
             %
             arguments
-                s (1,1) Sphere
+                s (1,1) SphereConverter
             end
-            [a, b, ex, ey, theta] = Sphere.sphere2parametricEllipse(s.s0(1), s.s0(2), s.s0(3), s.r);
+            [a, b, ex, ey, theta] = SphereConverter.sphere2parametricEllipse(s.s0(1), s.s0(2), s.s0(3), s.r);
             pE = ParametricEllipse([a, b, ex, ey, theta]);
+        end
+        
+        function pts = generateSpherePoints(s)
+            arguments
+                s (1,1) SphereConverter
+            end
+            Count = 100; % Resolution of the sampling
+            pts = zeros(Count*Count, 3);
+
+            for i = 1 : Count
+                for j = 1 : Count
+                    alpha = i / Count * 2 * pi;
+                    beta = j / Count * pi;
+                    pts(i * Count + j, :) = s.r.*...
+                        [cos(alpha)*sin(beta) sin(alpha)*sin(beta) cos(beta)];
+                end
+            end
+            pts = s.s0 + pts;
         end
     end
     

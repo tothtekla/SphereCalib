@@ -1,4 +1,4 @@
-classdef Ellipse
+classdef EllipseConverter
     % Ellipse
     
     properties
@@ -7,10 +7,10 @@ classdef Ellipse
     end
     
     methods
-        function out = Ellipse(obj)
+        function out = EllipseConverter(obj)
             % Constructor
             if nargin == 1       
-                if isa(obj,'Ellipse')
+                if isa(obj,'EllipseConverter')
                     out.implicitEllipse = obj.implicitEllipse;
                     out.parametricEllipse = obj.parametricEllipse;
                 elseif isa(obj,'ImplicitEllipse')   

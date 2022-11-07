@@ -12,8 +12,8 @@ classdef ImageData
             arguments
                 obj
                 imgNames (:, 1) cell
-                focalLength (2,1) double = [1, 1]
-                principalPoint (2,1) double = [1, 1]
+                focalLength (1,2) double = [1, 1]
+                principalPoint (1,2) double = [1, 1]
             end
             narginchk(1, inf);
             if isa(obj, 'ImageData')
@@ -33,7 +33,7 @@ classdef ImageData
             arguments
                 obj ImageData
                 backgroundIdx (1,1) double = 0
-                edgeThreshold (1,1) double = 0.1
+                edgeThreshold (1,1) double = 0.2
                 backgroundThreshold (1,1) double = 127
             end
             narginchk(1, 4);
@@ -43,14 +43,15 @@ classdef ImageData
             imgEdgeMin = cell(length(obj.imgs), 1);
             for i = 1 : length(obj.imgs)
                 imgGray = rgb2gray(obj.imgs{i});
-                imgBackground = uint8(ones(size(obj.imgs{i}(1:2))));
+                sizeImg = size(obj.imgs{i});
+                imgBackground = uint8(ones(sizeImg(1:2)));
                 if(backgroundIdx > 0)
                     imgNegative = uint8(abs(int8(obj.imgs{i}) - int8(obj.imgs{backgroundIdx})));
                     imgNegative = imgNegative(:,:,1).^2 + imgNegative(:,:,2).^2 + imgNegative(:,:,3).^2;
                     imgBackground = imgNegative >= backgroundThreshold;
                     imgBackground = uint8(255*imgBackground);
                 elseif backgroundIdx == i
-                    imgBackground = uint8(zeros(size(obj.imgs{i}(1:2))));
+                    imgBackground = uint8(zeros(sizeImg(1:2)));
                 end
                 imgEdge{i} = edge(imgGray,'canny', edgeThreshold);
                 imgEdgeMin{i} = imgEdge{i} & imgBackground;
@@ -60,11 +61,13 @@ classdef ImageData
                 [edgeMinIdxsX, edgeMinIdxsY] = find(imgEdgeMin{i});
                 % swap x and y to have x as horizontal and y as verical axis
                 edgeMinIdxs = [edgeMinIdxsY edgeMinIdxsX];
-                %{
+                % dev mode: show edge imgs
+                %%{
                 subplot(1,2,1);
-                imshow(imgEdge);
+                imshow(imgEdge{i});
                 subplot(1,2,2);
-                imshow(imgEdgeMin);
+                imshow(imgEdgeMin{i});
+                pause(0.5);
                 %}
                 points_m = ImageData.pixel2meter(edgeIdxs, obj.intrinsic);
                 pointsMin_m = ImageData.pixel2meter(edgeMinIdxs, obj.intrinsic);
@@ -80,8 +83,24 @@ classdef ImageData
         %
         % Convert image pixel to meters using camera instrinsic parameters
         %
-        points_m = (points_pix - intrinsic.PrincipalPoint') ./ intrinsic.FocalLength';
+        arguments
+            points_pix (:,2) double
+            intrinsic (1,1) cameraIntrinsics
         end
+        points_m = (points_pix - intrinsic.PrincipalPoint) ./ intrinsic.FocalLength;
+        end
+
+        function points_pix = meter2pixel(points_m, intrinsic)
+        %
+        % Convert image meter to pixels using camera instrinsic parameters
+        %
+        arguments
+            points_m (:,2) double
+            intrinsic (1,1) cameraIntrinsics
+        end
+        points_pix = (points_m .* intrinsic.FocalLength) + intrinsic.PrincipalPoint;
+        end
+
         %{
         function edgeThreshold = edgeImage(imgGray, edgeThreshold)
             fig = uifigure;
