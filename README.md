@@ -71,9 +71,25 @@ See [implementation status and measured checks](docs/PYTHON_IMPLEMENTATION.md), 
 
 Both legacy branches point to existing committed history. No MATLAB source needs to remain in the Python working tree. The examples' images, clouds, MAT metadata and historical output artifacts are retained as data. Avoid switching branches with uncommitted changes; use a separate checkout/worktree if you need MATLAB alongside Python.
 
-## Attribution
+## Citation and attribution
 
 Original project: Tóth, T., Pusztai, Z., Hajder, L., *Automatic LiDAR-Camera Calibration of Extrinsic Parameters Using a Spherical Target*, ICRA 2020, pp. 8580–8586. DOI: `10.1109/ICRA40945.2020.9197316`.
+
+If you use the camera–LiDAR calibration pipeline, please cite the ICRA 2020 paper:
+
+```bibtex
+@inproceedings{Toth_ICRA_2020,
+  author    = {Tekla Tóth and Zoltán Pusztai and Levente Hajder},
+  title     = {Automatic LiDAR-Camera Calibration of Extrinsic Parameters Using a
+               Spherical Target},
+  booktitle = {2020 {IEEE} International Conference on Robotics and Automation ({ICRA})},
+  pages     = {8580--8586},
+  publisher = {{IEEE}},
+  year      = {2020},
+  url       = {https://doi.org/10.1109/ICRA40945.2020.9197316},
+  doi       = {10.1109/ICRA40945.2020.9197316}
+}
+```
 
 The image-based sphere estimation and Direct3pFit research is described in Tóth, T. and Hajder, L., *A Minimal Solution for Image-Based Sphere Estimation*, International Journal of Computer Vision 131, 1428–1447 (2023). DOI: [10.1007/s11263-023-01766-1](https://doi.org/10.1007/s11263-023-01766-1). If you use the image-sphere estimators or build research on this implementation, please cite:
 
