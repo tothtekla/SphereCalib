@@ -75,4 +75,18 @@ Both legacy branches point to existing committed history. No MATLAB source needs
 
 Original project: Tóth, T., Pusztai, Z., Hajder, L., *Automatic LiDAR-Camera Calibration of Extrinsic Parameters Using a Spherical Target*, ICRA 2020, pp. 8580–8586. DOI: `10.1109/ICRA40945.2020.9197316`.
 
+The image-based sphere estimation and Direct3pFit research is described in Tóth, T. and Hajder, L., *A Minimal Solution for Image-Based Sphere Estimation*, International Journal of Computer Vision 131, 1428–1447 (2023). DOI: [10.1007/s11263-023-01766-1](https://doi.org/10.1007/s11263-023-01766-1). If you use the image-sphere estimators or build research on this implementation, please cite:
+
+```bibtex
+@article{toth2023minimal,
+  author  = {Tekla Tóth and Levente Hajder},
+  title   = {A Minimal Solution for Image-Based Sphere Estimation},
+  journal = {International Journal of Computer Vision},
+  volume  = {131},
+  pages   = {1428--1447},
+  year    = {2023},
+  doi     = {10.1007/s11263-023-01766-1}
+}
+```
+
 The equal-cone image fit and classical processing architecture follow the original source. Python robust fitting/refinement and proper SE(3) translation are independently implemented, with documented differences; no MATLAB numerical-equivalence claim is made. MIT license and original attribution are retained in [LICENSE.txt](LICENSE.txt).
