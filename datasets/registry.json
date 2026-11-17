@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-11-17",
+  "datasets": [
+    {
+      "id": "calibrgbd-synthetic",
+      "url": "https://www.rfai.lifat.univ-tours.fr/PublicData/calibrgbd/CalibRGBD_fichiers/data/Synth.zip",
+      "archive_bytes": 191083527,
+      "paired_rgb_3d": true,
+      "ground_truth": "exact synthetic sphere centers, radius, RGB/depth intrinsics, and RGB-from-depth extrinsics",
+      "use": "primary public calibration benchmark",
+      "adapter": "spherecalib.datasets.calibrgbd"
+    },
+    {
+      "id": "calibrgbd-random-equidistant-double",
+      "url": "https://www.rfai.lifat.univ-tours.fr/PublicData/calibrgbd/CalibRGBD.html",
+      "paired_rgb_3d": true,
+      "ground_truth": "manual segmentations/fitted centers and manufacturer calibration; not independent exact physical sphere-center GT",
+      "use": "real-data detection and calibration consistency after download"
+    },
+    {
+      "id": "marscalib-sample",
+      "url": "https://github.com/sparolab/MARSCalib",
+      "paired_rgb_3d": true,
+      "ground_truth": "real sample sequences; centers are estimated by the pipeline rather than independently surveyed",
+      "use": "external end-to-end comparison requiring ROS2, PCL, Ceres, GTSAM and SAM"
+    },
+    {
+      "id": "shrec2022-primitives",
+      "url": "https://github.com/chiararomanengo/SHREC2022",
+      "paired_rgb_3d": false,
+      "ground_truth": "synthetic primitive type and parameters, including exact sphere center/radius",
+      "use": "3D sphere-fitting benchmark only",
+      "adapter": "spherecalib.datasets.shrec2022"
+    },
+    {
+      "id": "bagsfit",
+      "url": "https://github.com/ai4ce/BAGSFit",
+      "paired_rgb_3d": false,
+      "ground_truth": "Blensor primitive parameters and per-point instance/class labels",
+      "use": "cluttered multi-primitive 3D segmentation/fitting benchmark"
+    },
+    {
+      "id": "tum-rgbd-metallic-sphere",
+      "url": "https://webshare.cvg.cit.tum.de/g/rgbd/dataset/",
+      "paired_rgb_3d": true,
+      "ground_truth": "camera trajectory and known 150 mm diameter; no surveyed per-frame sphere-center GT",
+      "use": "qualitative/consistency evaluation, not exact center-accuracy claims"
+    }
+  ]
+}

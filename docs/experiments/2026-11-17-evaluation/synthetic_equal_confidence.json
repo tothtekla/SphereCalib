@@ -1,0 +1,23 @@
+{
+  "kind": "synthetic_solver_ablation",
+  "budget": "equal-confidence",
+  "trials": 100,
+  "iterations": 300,
+  "seed": 0,
+  "outlier_fraction": 0.25,
+  "confidence": 0.999,
+  "assumed_inlier_probability": 0.75,
+  "assumed_orientation_reliability": 0.95,
+  "threshold_rad": 0.0015,
+  "python": "3.14.2",
+  "numpy": "2.4.3",
+  "scipy": "1.17.1",
+  "truth_center_m": [
+    0.18,
+    -0.08,
+    2.8
+  ],
+  "radius_m": 0.12,
+  "failures": 0,
+  "rows": 5400
+}
