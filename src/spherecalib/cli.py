@@ -38,13 +38,14 @@ def benchmark(output, trials=30, iterations=300, seed=0, budget="equal-proposals
                                          outlier_fraction=0.25, seed=seed+trial)
                 U, N = pixel_rays(xy, K), tangent_normals(xy, t, K)
                 for refinement in ("none", "points", "oriented"):
-                    for method in ("3p", "1p5"):
+                    for method in ("3p", "1p5", "2op"):
                         proposals = iterations
                         if budget == "equal-confidence":
                             if method == "3p":
                                 proposals = confidence_iterations(inlier_probability, 3, confidence)
                             else:
-                                success = inlier_probability**2 * orientation_reliability
+                                oriented_count = 1 if method == "1p5" else 2
+                                success = inlier_probability**2 * orientation_reliability**oriented_count
                                 proposals = (1 if success >= 1 else
                                              int(np.ceil(np.log1p(-confidence)/np.log1p(-success))))
                         start = perf_counter()
@@ -75,11 +76,15 @@ def benchmark(output, trials=30, iterations=300, seed=0, budget="equal-proposals
                 "truth_center_m": truth.tolist(), "radius_m": radius,
                 "failures": sum(bool(row["failure"]) for row in rows), "rows": len(rows)}
     output.with_suffix(".json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    from .evaluation import summarize_benchmark, paired_solver_differences
+    from .evaluation import (summarize_benchmark, paired_solver_differences,
+                             paired_method_differences)
     summary = summarize_benchmark(output, seed=seed)
     output.with_name(output.stem+"_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     paired = paired_solver_differences(output, seed=seed)
     output.with_name(output.stem+"_paired.json").write_text(json.dumps(paired, indent=2), encoding="utf-8")
+    paired_all = paired_method_differences(output, seed=seed)
+    output.with_name(output.stem+"_paired_all.json").write_text(
+        json.dumps(paired_all, indent=2), encoding="utf-8")
     return metadata
 
 
@@ -113,7 +118,7 @@ def main(argv=None):
     example.add_argument("--radius-min", type=float, default=0.1)
     example.add_argument("--radius-max", type=float, default=1.0)
     example.add_argument("--close-threshold", type=float, default=0.0)
-    example.add_argument("--image-method", choices=["3p", "1p5", "circle"], default="3p")
+    example.add_argument("--image-method", choices=["3p", "1p5", "2op", "circle"], default="3p")
     example.add_argument("--output", type=Path, default=Path("results/example.json"))
     public = sub.add_parser("evaluate-calibrgbd", help="Evaluate methods on extracted CalibRGBD Synth")
     public.add_argument("root", type=Path)

@@ -6,7 +6,8 @@ import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation
 from spherecalib.geometry import (pixel_rays, tangent_normals, fit_sphere_image,
-    fit_sphere_oriented, fit_sphere_llsb, angular_residual, sphere_conic, project)
+    fit_sphere_oriented, fit_sphere_two_oriented, fit_sphere_llsb,
+    angular_residual, sphere_conic, project)
 from spherecalib.robust import fit_image, confidence_iterations
 from spherecalib.lidar import fit_cloud, remove_planes, algebraic_sphere
 from spherecalib.registration import Transform, register_points, robust_register, transform_error
@@ -54,6 +55,10 @@ class GeometryTests(unittest.TestCase):
                     for sign in (-1, 1):
                         s = fit_sphere_oriented(U[i], U[j], sign*N[i], radius)
                         np.testing.assert_allclose(s, center, atol=1e-9)
+                    for sign1 in (-1, 1):
+                        for sign2 in (-1, 1):
+                            s = fit_sphere_two_oriented(U[i], U[j], sign1*N[i], sign2*N[j], radius)
+                            np.testing.assert_allclose(s, center, atol=1e-9)
                 h = np.c_[xy, np.ones(len(xy))] @ np.linalg.inv(K).T
                 self.assertLess(np.max(np.abs(np.einsum('ni,ij,nj->n', h, sphere_conic(center, radius), h))), 1e-10)
 
@@ -66,13 +71,31 @@ class GeometryTests(unittest.TestCase):
             fit_sphere_image(np.eye(3), -1)
         with self.assertRaises(ValueError):
             fit_sphere_oriented([0, 0, 1], [0.1, 0, 1], [0, 0, 1], 0.12)
+        with self.assertRaises(ValueError):
+            fit_sphere_two_oriented([0, 0, 1], [0, 0, 1], [1, 0, 0], [0, 1, 0], 0.12)
+
+    def test_two_oriented_randomized_exact(self):
+        rng = np.random.default_rng(12)
+        K = np.array([[870, 11, 630], [0, 1040, 470], [0, 0, 1.]])
+        for case in range(20):
+            radius = rng.uniform(0.05, 0.35)
+            center = np.r_[rng.uniform(-0.8, 0.8, 2), rng.uniform(1.5, 8.0)]
+            xy, tangents, _, _ = silhouette(center, radius, count=180, K=K, seed=case)
+            rays = pixel_rays(xy, K)
+            normals = tangent_normals(xy, tangents, K)
+            i = int(rng.integers(0, 90))
+            j = i + int(rng.integers(30, 90))
+            signs = rng.choice([-1, 1], 2)
+            fitted = fit_sphere_two_oriented(rays[i], rays[j],
+                                             signs[0]*normals[i], signs[1]*normals[j], radius)
+            np.testing.assert_allclose(fitted, center, atol=1e-9)
 
     def test_noisy_consensus_and_updated_mask(self):
         center = np.array([0.18, -0.08, 2.8])
         xy, t, K, _ = silhouette(center, 0.12, noise_px=0.3, tangent_noise_deg=2,
                                  outlier_fraction=0.25, seed=4)
         U, N = pixel_rays(xy, K), tangent_normals(xy, t, K)
-        for method in ("3p", "1p5"):
+        for method in ("3p", "1p5", "2op"):
             for refinement in ("none", "points", "oriented"):
                 f = fit_image(U, 0.12, N, method, 0.0015, 150, 4, refinement)
                 self.assertLess(np.linalg.norm(f.center-center), 0.06)

@@ -37,7 +37,7 @@ Raw downloads and generated `results/` are ignored by Git. Compact reference res
 
 Report each layer independently so an improvement cannot be credited to the wrong component.
 
-1. **Minimal hypothesis:** exact/noisy samples, without consensus or refinement. Compare Direct3pFit/3p, LLSB, five-point conic fitting, and 1.5p. Record invalid/degenerate hypotheses.
+1. **Minimal hypothesis:** exact/noisy samples, without consensus or refinement. Compare Direct3pFit/3p, LLSB, five-point conic fitting, 1.5p, and the 2OP geometric baseline. Record invalid/degenerate hypotheses.
 2. **Robust estimator:** use identical generated measurements, inlier definitions and residual units. Compare equal proposal counts and equal theoretical success confidence separately. The 1.5p confidence model includes the probability that the oriented sample has a reliable tangent.
 3. **Refinement:** hypothesis-only, identical point-only refinement, and orientation-aware refinement are separate ablations. Recompute the consensus after refinement.
 4. **Detection:** measure candidate-mask Dice/IoU where masks exist, boundary displacement in pixels, tangent angular error and false-edge rate. A neural proposal and its subpixel boundary localization are separate modules.
@@ -92,8 +92,8 @@ The machine-readable version is `datasets/registry.json`.
 
 | Component | Methods | Status |
 | --- | --- | --- |
-| Image center | Direct3pFit/3p; proposed 1.5p hypothesis and point-refined variant; Sun et al. LLSB; direct five-point ellipse + conic-to-sphere; legacy circle consensus | Implemented; processed CalibRGBD comparison includes all except raw-edge circle consensus |
-| Robust estimation | 3p/1.5p RANSAC; point/orientation refinement | Implemented with equal-proposal/equal-confidence modes |
+| Image center | Direct3pFit/3p; experimental 1.5p and 2OP hypotheses; Sun et al. LLSB; direct five-point ellipse + conic-to-sphere; legacy circle consensus | Implemented; historical processed CalibRGBD results predate 2OP |
+| Robust estimation | 3p/1.5p/2OP RANSAC; point/orientation refinement | Equal-proposal/equal-confidence modes implemented; equal-wall-clock mode pending |
 | Cloud center | algebraic hypothesis; known/unknown-radius nonlinear refit; random/distance/adjacency sampling | Implemented |
 | Registration | determinant-corrected least squares; robust three-center consensus | Implemented |
 | CalibRGBD published | DLT; Staranowicz 2014; Boas 2019 | Official benchmark outputs imported and labelled as supplied results |

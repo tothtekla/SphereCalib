@@ -116,6 +116,48 @@ def fit_sphere_oriented(u, v, normal, radius):
     return center
 
 
+def fit_sphere_two_oriented(u1, u2, normal1, normal2, radius):
+    """Fit a known-radius sphere from two oriented silhouette observations.
+
+    Each observation constrains the center to one of two lines
+    ``s = lambda*u + sigma*r*n``.  The tangent-plane normal sign is not
+    observable, so all four sign pairs are tested.  For noisy observations,
+    the candidate minimizes the summed squared distances to the two lines.
+    This is a geometric baseline, not a covariance-weighted estimator.
+    """
+    r = positive_radius(radius)
+    u1, u2 = unit(u1), unit(u2)
+    n1 = np.asarray(normal1, float)
+    n2 = np.asarray(normal2, float)
+    n1 = unit(n1 - (n1 @ u1) * u1)
+    n2 = unit(n2 - (n2 @ u2) * u2)
+    separation = 1.0 - abs(float(u1 @ u2))
+    if separation < 1e-12:
+        raise ValueError("Two-oriented sample has parallel or poorly separated rays")
+
+    identity = np.eye(3)
+    p1 = identity - np.outer(u1, u1)
+    p2 = identity - np.outer(u2, u2)
+    design = np.vstack((p1, p2))
+    if np.linalg.matrix_rank(design) < 3:
+        raise ValueError("Two-oriented center lines do not define a stable center")
+
+    candidates = []
+    for sign1 in (-1.0, 1.0):
+        for sign2 in (-1.0, 1.0):
+            target = np.r_[sign1*r*n1, sign2*r*n2]
+            center, _, rank, singular = np.linalg.lstsq(design, target, rcond=None)
+            depths = np.array([u1 @ center, u2 @ center])
+            if rank < 3 or np.any(depths <= 0) or not valid_center(center, r, np.array([u1, u2])):
+                continue
+            residual = design @ center - target
+            score = (float(residual @ residual), -float(singular[-1]))
+            candidates.append((score, center))
+    if not candidates:
+        raise ValueError("No valid forward sphere from two oriented observations")
+    return min(candidates, key=lambda item: item[0])[1]
+
+
 def angular_residual(center, rays, radius):
     """Signed ray-to-silhouette angular error in radians, independent of range."""
     r = positive_radius(radius)

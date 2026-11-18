@@ -67,3 +67,46 @@ def paired_solver_differences(path, bootstrap_samples=2000, seed=0):
                        "median_error_1p5_minus_3p_m": median,
                        "median_difference_bootstrap_ci95_m": ci})
     return output
+
+
+def paired_method_differences(path, reference="3p", bootstrap_samples=2000, seed=0):
+    """Paired error differences for every method against a reference method."""
+    trials = defaultdict(dict)
+    with open(path, newline='', encoding='utf-8') as stream:
+        for row in csv.DictReader(stream):
+            key = (float(row['noise_px']), float(row['tangent_noise_deg']),
+                   row['refinement'], int(row['trial']), int(row['seed']))
+            trials[key][row['method']] = row
+    method_names = sorted({name for methods in trials.values() for name in methods if name != reference})
+    rng = np.random.default_rng(seed)
+    output = []
+    settings = sorted({key[:3] for key in trials})
+    for noise, tangent_noise, refinement in settings:
+        matching = [methods for key, methods in trials.items()
+                    if key[:3] == (noise, tangent_noise, refinement)]
+        for method in method_names:
+            differences = []
+            reference_failures = method_failures = joint_failures = 0
+            for methods in matching:
+                ref_failed = reference not in methods or bool(methods[reference]['failure'])
+                method_failed = method not in methods or bool(methods[method]['failure'])
+                reference_failures += ref_failed
+                method_failures += method_failed
+                joint_failures += ref_failed or method_failed
+                if not ref_failed and not method_failed:
+                    differences.append(float(methods[method]['error_m'])-
+                                       float(methods[reference]['error_m']))
+            values = np.asarray(differences, float)
+            median, interval = None, [None, None]
+            if len(values):
+                median = float(np.median(values))
+                boot = np.median(rng.choice(values, (bootstrap_samples, len(values)), replace=True), axis=1)
+                interval = np.quantile(boot, [0.025, 0.975]).tolist()
+            output.append({"noise_px": noise, "tangent_noise_deg": tangent_noise,
+                           "refinement": refinement, "reference": reference,
+                           "method": method, "paired_successes": len(values),
+                           "trials": len(matching), "reference_failures": reference_failures,
+                           "method_failures": method_failures, "joint_failures": joint_failures,
+                           "median_error_difference_m": median,
+                           "median_difference_bootstrap_ci95_m": interval})
+    return output

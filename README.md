@@ -2,7 +2,7 @@
 
 Python sphere estimation and camera–LiDAR calibration, continuing the MATLAB SphereCalib research project by Tekla Tóth et al. The active implementation is Python. Original MATLAB code is preserved on local branches `legacy/matlab-master` (ICRA implementation) and `legacy/matlab-dev` (research snapshot).
 
-The package runs a complete classical pipeline: paired images and clouds → subpixel edge candidates → robust image/cloud sphere fitting → corresponding centers → rigid camera–LiDAR registration. It includes the oriented 1.5-point research solver, synthetic ablations, a CalibRGBD Synthetic adapter, and SHREC 2022 sphere-fitting evaluation. Numerical MATLAB parity, neural inference, and independently surveyed real-world validation remain separate research milestones.
+The package runs a complete classical pipeline: paired images and clouds → subpixel edge candidates → robust image/cloud sphere fitting → corresponding centers → rigid camera–LiDAR registration. It includes experimental 1.5-point and two-oriented-point geometric baselines, synthetic ablations, a CalibRGBD Synthetic adapter, and SHREC 2022 sphere-fitting evaluation. Numerical MATLAB parity, solver novelty, neural inference, and independently surveyed real-world validation remain separate research milestones.
 
 ## Install and run
 
@@ -16,7 +16,7 @@ python -m spherecalib benchmark --trials 30 --iterations 300
 python -m spherecalib example examples/example1 --radius-max 3 --output results/example1.json
 ```
 
-For the existing environment without installation, set `$env:PYTHONPATH = 'src'` before running the commands. Benchmark defaults produce 1,620 fits across paired noise conditions and refinement ablations. This is an equal-proposal experiment, not an equal-confidence comparison.
+For the existing environment without installation, set `$env:PYTHONPATH = 'src'` before running the commands. Benchmark defaults produce 2,430 fits across paired noise conditions, three hypothesis methods, and refinement ablations. This is an equal-proposal experiment, not an equal-confidence comparison.
 
 Convenience scripts run the same commands from the repository root:
 
@@ -63,9 +63,9 @@ Paths resolve relative to the manifest. Cloud formats: XYZ, TXT, CSV, NPY and PL
 
 Output `T_camera_from_lidar` follows `X_camera = R @ X_lidar + t` using column vectors. Coordinates are meters; image coordinates are zero-based undistorted pixels; errors use radians and meters. `registration_consistent` checks center-registration RMSE against configurable `registration_consistency_m` (default 0.05 m). It is an internal consistency diagnostic, not ground-truth accuracy or proof of correct target association.
 
-Image methods: `3p`, `1p5`, `circle`. Refinement: `none`, `points`, `oriented` (explicit angular scales; preliminary independent-error model). Cloud methods: `adjacency`, `distance`, `random`; known-radius and unknown-radius fits are supported. Plane removal and robust center registration are configurable. Correspondence is supplied by frame order; there is one target per frame.
+Image methods: `3p`, `1p5`, `2op`, `circle`. Refinement: `none`, `points`, `oriented` (explicit angular scales; preliminary independent-error model). The oriented methods are research baselines, not established novelty or superiority claims. Cloud methods: `adjacency`, `distance`, `random`; known-radius and unknown-radius fits are supported. Plane removal and robust center registration are configurable. Correspondence is supplied by frame order; there is one target per frame.
 
-See [implementation status and measured checks](docs/PYTHON_IMPLEMENTATION.md), [evaluation protocol](docs/EVALUATION.md), [verified research review](REVIEW.md), [initial repository audit](docs/REIMPLEMENTATION_PLAN.md), and `python -m spherecalib --help`.
+See [implementation status and measured checks](docs/PYTHON_IMPLEMENTATION.md), [evaluation protocol](docs/EVALUATION.md), [adversarial publication review](docs/CRITICAL_REVIEW.md), [oriented-solver mathematical audit](docs/ORIENTED_SOLVER_AUDIT.md), [AI usage record](AI_USAGE.md), [verified research review](REVIEW.md), [initial repository audit](docs/REIMPLEMENTATION_PLAN.md), and `python -m spherecalib --help`.
 
 ## MATLAB legacy
 
